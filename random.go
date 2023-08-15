@@ -1,7 +1,6 @@
 package bkit
 
 import (
-	"fmt"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -94,7 +93,7 @@ func random(opts ...randomOption) RandomResult {
 	var letterIdxMax = 63 / letterIdxBits
 
 	n := int(rs.length)
-	fmt.Println("n:", n)
+
 	seed := rs.seed
 
 	b := make([]byte, n)
