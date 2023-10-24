@@ -3,14 +3,13 @@ package bkit
 import (
 	"math/rand"
 	"strconv"
-	"strings"
 	"time"
 )
 
 // 随机字符串
 
 // 随机字符串返回类型
-type RandomResult []byte
+type RandomResult []rune
 
 func (b RandomResult) String() string {
 	return string(b)
@@ -24,14 +23,14 @@ func (b RandomResult) Int() int {
 }
 
 // 生成随机字符串
-const (
-	randomLowerLetters = "abcdefghijklmnopqrstuvwxyz"
-	randomUpperLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	randomNumber       = "123456789"
+var (
+	randomLowerLetters = []rune("abcdefghijklmnopqrstuvwxyz")
+	randomUpperLetters = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	randomNumber       = []rune("123456789")
 )
 
 type randomStruct struct {
-	seed   string
+	seed   []rune
 	length uint
 }
 
@@ -54,14 +53,27 @@ func RandomOptionUpper() randomOption {
 // RandomOptionLetter 设置随机字符串为大小写英文字母
 func RandomOptionLetter() randomOption {
 	return func(r *randomStruct) {
-		r.seed = strings.Join([]string{randomUpperLetters, randomLowerLetters}, "")
+		// r.seed = strings.Join([]string{randomUpperLetters, randomLowerLetters}, "")
+		words := make([]rune, len(randomUpperLetters)+len(randomLowerLetters))
+		copy(words[:], randomUpperLetters)
+		copy(words[len(randomUpperLetters):], randomLowerLetters)
+		r.seed = words
 	}
 }
 
-// RandomOptionNumber 设置随机字符串为大小写英文字母
+// RandomOptionNumber 设置随机字符串为纯数字
 func RandomOptionNumber() randomOption {
 	return func(r *randomStruct) {
 		r.seed = randomNumber
+	}
+}
+
+// RandomOptionCustomSeed 设置自定义的随机数
+func RandomOptionCustomSeed(seed string) randomOption {
+	return func(r *randomStruct) {
+		if seed != "" {
+			r.seed = []rune(seed)
+		}
 	}
 }
 
@@ -77,8 +89,16 @@ func RandomOptionLength(length uint) randomOption {
 func random(opts ...randomOption) RandomResult {
 	// 设置随机数的默认种子为全部大小写英文+数字
 	// 默认长度为6个字符
+	ulLen := len(randomUpperLetters)
+	llLen := len(randomLowerLetters)
+
+	words := make([]rune, ulLen+llLen+len(randomNumber))
+	copy(words[:], randomUpperLetters)
+	copy(words[ulLen:], randomLowerLetters)
+	copy(words[ulLen+llLen:], randomNumber)
+
 	rs := randomStruct{
-		seed:   strings.Join([]string{randomLowerLetters, randomUpperLetters, randomNumber}, ""),
+		seed:   words,
 		length: 6,
 	}
 
@@ -96,7 +116,7 @@ func random(opts ...randomOption) RandomResult {
 
 	seed := rs.seed
 
-	b := make([]byte, n)
+	b := make([]rune, n)
 	// A src.Int63() generates 63 random bits, enough for letterIdxMax characters!
 	for i, cache, remain := n-1, src.Int63(), letterIdxMax; i >= 0; {
 		if remain == 0 {
